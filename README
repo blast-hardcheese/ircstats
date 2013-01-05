@@ -1,0 +1,37 @@
+Take regular formatted IRC logs and derive potentially interesting statistics from them.
+
+Sample data:
+[00:01:58] <user1> user2: url
+[00:02:27] <user1> user2: gur yvar ng jjqp sbe gur xrlabgr fb sne.uggc://vafgnte.nz/c/YhKVRnQOyD/
+[00:03:00] <user3> jung yvar? :)
+[00:05:31] *** Quits: user4 (~user4@unaffiliated/user4) (Ping timeout: 252 seconds)
+[00:05:34] <user5> ner gurer frcnengr gvpxrgf sbe gur xrlabgr?
+[00:07:26] *** Joins: user6 (~user6@1.2.3.4.isp.foo)
+[00:07:36] *** Joins: user7 (~user7@1.2.3.5)
+[00:08:33] *** Quits: user8 (~user8@ubuntu/member/user8) (Remote host closed the connection)
+[00:10:44] *** Joins: user9 (~user9@123abcde.isp.host.foo)
+[00:11:14] <user10> jng
+[00:11:23] <user10> gung'f gur xrlabgr yvar ng 12NZ?
+[00:11:41] *** Quits: user11 (~user11@1.2.3.6.isp.foo) (Quit: user11)
+[00:11:54] *** Quits: user12 (~user12@1.2.3.7.isp.fooser12)
+[00:12:28] *** Quits: user13 (~foo@1.2.3.8) (Ping timeout: 246 seconds)
+[00:14:41] <user11> ubj pna v nqq n onpxtebhaq gb n jro ivrj gung qbrf abg trg fgergpurq jura v mbbz va naq bhg gur grkg?
+[00:16:37] <user10> pna lbh qb fbzrguvat shaxl jvgu gur fpebyyivrj, be jbhyq vg arrq gb or na ugzy fbyhgvba?
+
+Derived data:
+    user1 is talking to user2
+    user11 is asking a question
+    user 10 is asking a question that might be related to user11's question
+    hostnames, IPs, cloaks
+    what clients users may be using
+
+Derivable data:
+    graph user activity:
+        Hours online
+        Hours conversing
+        Days absent (mention of vacation, sickness, etc)
+    aggregate stats from many channels
+
+Potentially derivable data:
+    favorite words, topics
+    frequency of help vs trolling
