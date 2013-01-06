@@ -42,7 +42,7 @@ object LineParser extends RegexParsers {
   val host = "~?".r ~ hostnick ~ "@" ~ hostchars ^^ { case _1 ~ n ~ a ~ _2 => _1 ++ n ++ a ++ _2 }
   val hostmask = rep( nick | "*" ) ~ "!" ~ rep( nick | "*" ) ~ "@" ~ rep( hostchars | "*" )  ^^ { case n1 ~ b ~ n2 ~ a ~ h => n1.mkString ++ b ++ n2.mkString ++ a ++ h.mkString }
 
-  val paren_reason: Parser[String] = ( "(\".*\")".r | "(.*)".r)
+  val paren_reason: Parser[String] = ( "\\(\"(.*)\"\\)".r | "\\((.*)\\)".r)
 
   val rest = ".*".r
 
