@@ -50,26 +50,26 @@ object LineParser extends RegexParsers {
   val rest = ".*".r
 
 // [00:01:58] <Gur_Gvpx> revpn: url
-  val message = "<" ~ nick ~ "> " ~ rest ^^ { case "<" ~ n ~ "> " ~ m => new Message(0, n, m) }
+  val message = "<" ~ nick ~ "> " ~ rest ^^ { case "<" ~ n ~ "> " ~ m => Message(0, n, m) }
 
 // [00:05:31] *** Quits: jryyl (~jryyl@hanssvyvngrq/jryyl) (Ping timeout: 252 seconds)
-  val quits = "*** Quits: " ~> nick ~ (" (" ~> host <~ ") ") ~ paren_reason ^^ { case n ~ h ~ r => new Quit(0, n, h, r) }
+  val quits = "*** Quits: " ~> nick ~ (" (" ~> host <~ ") ") ~ paren_reason ^^ { case n ~ h ~ r => Quit(0, n, h, r) }
 
 // [00:07:26] *** Joins: ecbjryy (~ecbjryy@PCR-58-168-95-254.yaf6.xra.ovtcbaq.arg.nh)
-  val joins = "*** Joins: " ~> nick ~ (" (" ~> host <~ ")") ^^ { case n ~ h => new Join(0, n, h) }
+  val joins = "*** Joins: " ~> nick ~ (" (" ~> host <~ ")") ^^ { case n ~ h => Join(0, n, h) }
 
 // [03:27:10] *** Parts: gurOynpx (~guroynpx@93-136-4-134.nqfy.arg.g-pbz.ue) ()
-  val parts = "*** Parts: " ~> nick ~ (" (" ~> host <~ ")") ~ (" " ~> paren_reason) ^^ { case n ~ h ~ r => new Part(0, n, h, r) }
+  val parts = "*** Parts: " ~> nick ~ (" (" ~> host <~ ")") ~ (" " ~> paren_reason) ^^ { case n ~ h ~ r => Part(0, n, h, r) }
 
 // [00:21:05] *** qentbafu-1 is now known as qentbafurq
-  val nickchange = "*** " ~> nick ~ (" is now known as " ~> nick) ^^ { case oldn ~ newn => new NickChange(0, oldn, newn) }
+  val nickchange = "*** " ~> nick ~ (" is now known as " ~> nick) ^^ { case oldn ~ newn => NickChange(0, oldn, newn) }
 
 // [01:09:42] * WbangunaGubzcfba jbaqref vs N_Aho erfcbaqrq ng rknpgyl gur evtug gvzr gb pngpu uvz abg pbaarpgrq :P
-  val action = "* " ~> nick ~ rest ^^ { case nick ~ rest => new Action(0, nick, rest) }
+  val action = "* " ~> nick ~ rest ^^ { case nick ~ rest => Action(0, nick, rest) }
 
 // [03:01:01] *** ChanServ sets mode: +o xEnXnGbN
 // [03:01:37] *** xEnXnGbN sets mode: +b *!*RivyCrath@*.nyod.djrfg.arg
-  val modechange = "*** " ~> (nick <~ " sets mode: ") ~ mode ~ ( " " ~> ( nick | channel | hostmask ) ) ^^ { case nick ~ mode ~ target => new ModeChange(0, nick, mode, target) }
+  val modechange = "*** " ~> (nick <~ " sets mode: ") ~ mode ~ ( " " ~> ( nick | channel | hostmask ) ) ^^ { case nick ~ mode ~ target => ModeChange(0, nick, mode, target) }
 
 
   val line = (timestamp <~ " ") ~ ( message | quits | joins | parts | nickchange | action | modechange ) ^^ {
