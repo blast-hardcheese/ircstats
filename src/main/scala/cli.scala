@@ -95,7 +95,14 @@ object LineParser extends RegexParsers {
 
 class IRCLog(rawlines: List[String]) {
   val lines = for (line <- rawlines; parse = LineParser(line) ) yield parse
-  val nicks = (for(line <- lines) yield line.nick).toList.distinct
+  val nicks = (for(line <- lines) yield line.nick).toList.distinct.sorted
+  val messages = lines.filter( _ match { case _: Message => true; case _ => false }) toList
+
+  val talkative = nicks.map(nick => (nick, messages.filter(message => message.nick == nick).toList.length)) toMap
+  val mentioned = nicks.map(nick => (nick, messages.filter( _ match { case message: Message => message.message.contains(nick); case _ => false } ).toList.length)) toMap
+
+  val most_talkative = talkative.map( kv => (kv._2, kv._1) ).toList.sorted.reverse
+  val most_mentioned = mentioned.map( kv => (kv._2, kv._1) ).toList.sorted.reverse
 }
 
 object IRCLog {
