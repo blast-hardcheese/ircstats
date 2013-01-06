@@ -25,38 +25,51 @@ object LineParser extends RegexParsers {
     case h ~ ":" ~ m ~ ":" ~ s => h * 60 * 60 + m * 60 + s
   }
 
+  val mode = "[+-][a-zA-Z]+".r
+  val channel = "[#&][^, ]{1,200}".r
+
   val nick_letter = "[a-zA-Z]+".r
   val nick_digit = "[0-9]+".r
   val nick_special = ( "[" | "]" | "\\" | "`" | "_" | "^" | "{" | "}" | "|" | "-" | "." )
   val nick = (nick_letter | nick_special) ~ rep(nick_letter | nick_digit | nick_special) ^^ {
     case first ~ list => first ++ list.mkString
   }
-
   val hostnick = rep( nick_letter | nick_digit | nick_special ) ^^ {
     case list => list.mkString
-  }
-
-  val rest = ".*".r
-  val message = "<" ~ nick ~ "> " ~ rest ^^ {
-    case "<" ~ n ~ "> " ~ m => new Message(0, n, m)
   }
 
   val hostchars = "[:/a-zA-Z0-9._-]+".r
   val host = "~?".r ~ hostnick ~ "@" ~ hostchars ^^ { case _1 ~ n ~ a ~ _2 => _1 ++ n ++ a ++ _2 }
   val hostmask = rep( nick | "*" ) ~ "!" ~ rep( nick | "*" ) ~ "@" ~ rep( hostchars | "*" )  ^^ { case n1 ~ b ~ n2 ~ a ~ h => n1.mkString ++ b ++ n2.mkString ++ a ++ h.mkString }
-// [03:01:37] *** kRaKaToA sets mode: +b *!*EvilPengu@*.albq.qwest.net
+
   val paren_reason: Parser[String] = ( "(\".*\")".r | "(.*)".r)
+
+  val rest = ".*".r
+
+// [00:01:58] <Gur_Gvpx> revpn: url
+  val message = "<" ~ nick ~ "> " ~ rest ^^ { case "<" ~ n ~ "> " ~ m => new Message(0, n, m) }
+
+// [00:05:31] *** Quits: jryyl (~jryyl@hanssvyvngrq/jryyl) (Ping timeout: 252 seconds)
   val quits = "*** Quits: " ~> nick ~ (" (" ~> host <~ ") ") ~ paren_reason ^^ { case n ~ h ~ r => new Quit(0, n, h, r) }
+
+// [00:07:26] *** Joins: ecbjryy (~ecbjryy@PCR-58-168-95-254.yaf6.xra.ovtcbaq.arg.nh)
   val joins = "*** Joins: " ~> nick ~ (" (" ~> host <~ ")") ^^ { case n ~ h => new Join(0, n, h) }
+
+// [03:27:10] *** Parts: gurOynpx (~guroynpx@93-136-4-134.nqfy.arg.g-pbz.ue) ()
   val parts = "*** Parts: " ~> nick ~ (" (" ~> host <~ ")") ~ (" " ~> paren_reason) ^^ { case n ~ h ~ r => new Part(0, n, h, r) }
+
+// [00:21:05] *** qentbafu-1 is now known as qentbafurq
   val nickchange = "*** " ~> nick ~ (" is now known as " ~> nick) ^^ { case oldn ~ newn => new NickChange(0, oldn, newn) }
+
+// [01:09:42] * WbangunaGubzcfba jbaqref vs N_Aho erfcbaqrq ng rknpgyl gur evtug gvzr gb pngpu uvz abg pbaarpgrq :P
   val action = "* " ~> nick ~ rest ^^ { case nick ~ rest => new Action(0, nick, rest) }
-  val mode = "[+-][a-zA-Z]+".r
-  val channel = "[#&][^, ]{1,200}".r
+
+// [03:01:01] *** ChanServ sets mode: +o xEnXnGbN
+// [03:01:37] *** xEnXnGbN sets mode: +b *!*RivyCrath@*.nyod.djrfg.arg
   val modechange = "*** " ~> (nick <~ " sets mode: ") ~ mode ~ ( " " ~> ( nick | channel | hostmask ) ) ^^ { case nick ~ mode ~ target => new ModeChange(0, nick, mode, target) }
 
 
-  def line = (timestamp <~ " ") ~ ( message | quits | joins | parts | nickchange | action | modechange ) ^^ {
+  val line = (timestamp <~ " ") ~ ( message | quits | joins | parts | nickchange | action | modechange ) ^^ {
     case ts ~ Message(_, n, m) => Message(ts, n, m)
     case ts ~ Quit(_, n, h, r) => Quit(ts, n, h, r)
     case ts ~ Join(_, n, h) => Join(ts, n, h)
@@ -80,19 +93,17 @@ object LineParser extends RegexParsers {
 object ircstats {
   def main(args: Array[String]) {
     if(args.length == 1) {
-      println(LineParser.mode findAllIn "+o" toList)
-      println(LineParser.applyName("_bart"))
-      val s1 = "[00:21:05] *** dragonsh-1 is now known as dragonshed"
-      println(LineParser.apply(s1))
-
-      val s2 = "[01:55:48] *** Joins: _bart (528b4fd4@gateway/web/freenode/ip.82.139.79.212)"
-      println(LineParser.apply(s2))
-
-      val s3 = "[03:01:01] *** ChanServ sets mode: +o kRaKaToA"
-      println(LineParser.apply(s3))
-
-      val s4 = "[03:01:37] *** kRaKaToA sets mode: +b *!*EvilPengu@*.albq.qwest.net"
-      println(LineParser.apply(s4))
+      val s = """
+[00:01:58] <Gur_Gvpx> revpn: url
+[00:05:31] *** Quits: jryyl (~jryyl@hanssvyvngrq/jryyl) (Ping timeout: 252 seconds)
+[00:07:26] *** Joins: ecbjryy (~ecbjryy@PCR-58-168-95-254.yaf6.xra.ovtcbaq.arg.nh)
+[03:27:10] *** Parts: gurOynpx (~guroynpx@93-136-4-134.nqfy.arg.g-pbz.ue) ()
+[00:21:05] *** qentbafu-1 is now known as qentbafurq
+[01:09:42] * WbangunaGubzcfba jbaqref vs N_Aho erfcbaqrq ng rknpgyl gur evtug gvzr gb pngpu uvz abg pbaarpgrq :P
+[03:01:01] *** ChanServ sets mode: +o xEnXnGbN
+[03:01:37] *** xEnXnGbN sets mode: +b *!*RivyCrath@*.nyod.djrfg.arg
+""".trim
+      println(LineParser.apply(s))
 
     } else {
       val s = Source.fromFile(defaults.filename, "UTF-8")
