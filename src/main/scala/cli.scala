@@ -8,6 +8,8 @@ object defaults {
 }
 
 object LineParser extends RegexParsers {
+  override val skipWhitespace = false
+
   def timestamp_number: Parser[Integer] = """\d+""".r ^^ { _.toInt }
   def timestamp = "[" ~> timestamp_number ~ ":" ~ timestamp_number ~ ":" ~ timestamp_number <~ "]" ^^ {
     case h ~ ":" ~ m ~ ":" ~ s => h * 60 * 60 + m * 60 + s
