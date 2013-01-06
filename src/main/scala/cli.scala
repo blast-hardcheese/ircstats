@@ -119,10 +119,9 @@ object ircstats {
 [03:01:01] *** ChanServ sets mode: +o xEnXnGbN
 [03:01:37] *** xEnXnGbN sets mode: +b *!*RivyCrath@*.nyod.djrfg.arg
 """.trim
-      for(line <- s.split("\n")) {
-        println(line)
-        println(LineParser.apply(line))
-      }
+      val lines = s.split("\n").toList
+      val log = new IRCLog(lines)
+      println(log.nicks)
     } else {
       // val lines = for (line <- s.getLines) yield LineParser(line)
 
