@@ -93,6 +93,19 @@ object LineParser extends RegexParsers {
   }
 }
 
+class IRCLog(rawlines: List[String]) {
+  val lines = for (line <- rawlines; parse = LineParser(line) ) yield parse
+  val nicks = (for(line <- lines) yield line.nick).toList.distinct
+}
+
+object IRCLog {
+  def fromFile(filename: String, encoding: String = "UTF-8") = {
+    val source = Source.fromFile(filename, encoding)
+    val lines = source.getLines.toList
+    new IRCLog(lines)
+  }
+}
+
 object ircstats {
   def main(args: Array[String]) {
     if(args.length == 1) {
@@ -111,12 +124,11 @@ object ircstats {
         println(LineParser.apply(line))
       }
     } else {
-      val s = Source.fromFile(defaults.filename, "UTF-8")
       // val lines = for (line <- s.getLines) yield LineParser(line)
-      val lines = for (line <- s.getLines; parse = LineParser(line) ) yield parse
 
-      val nicks = (for(line <- lines) yield line.nick).toList.distinct
-      println(nicks)
+      var log = IRCLog.fromFile(defaults.filename)
+
+      println(log.nicks)
     }
   }
 }
