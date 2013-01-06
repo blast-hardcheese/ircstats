@@ -4,7 +4,8 @@ import scala.util.parsing.combinator.RegexParsers
 import scala.io.Source
 
 object defaults {
-  def filename = "sample_data/#iphonedev_20120611.log-short"
+//  def filename = "sample_data/#iphonedev_20120611.log-short"
+  def filename = "sample_data/#iphonedev_20120611.log"
 }
 
 sealed trait IRCLine
