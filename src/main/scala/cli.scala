@@ -8,12 +8,15 @@ object defaults {
   def filename = "sample_data/#iphonedev_20120611.log"
 }
 
-sealed trait IRCLine
+sealed trait IRCLine {
+  val timestamp: Integer
+  val nick: String
+}
 case class Message(timestamp: Integer, nick: String, message: String) extends IRCLine
 case class Join(timestamp: Integer, nick: String, host: String) extends IRCLine
 case class Part(timestamp: Integer, nick: String, host: String, message: String) extends IRCLine
 case class Quit(timestamp: Integer, nick: String, host: String, reason: String) extends IRCLine
-case class NickChange(timestamp: Integer, oldnick: String, newnick: String) extends IRCLine
+case class NickChange(timestamp: Integer, oldnick: String, nick: String) extends IRCLine
 case class Action(timestamp: Integer, nick: String, action: String) extends IRCLine
 case class ModeChange(timestamp: Integer, nick: String, mode: String, target: String) extends IRCLine
 
@@ -109,10 +112,11 @@ object ircstats {
       }
     } else {
       val s = Source.fromFile(defaults.filename, "UTF-8")
-      for(line <- s.getLines) {
-//        println(line)
-        println(LineParser.apply(line))
-      }
+      // val lines = for (line <- s.getLines) yield LineParser(line)
+      val lines = for (line <- s.getLines; parse = LineParser(line) ) yield parse
+
+      val nicks = (for(line <- lines) yield line.nick).toList.distinct
+      println(nicks)
     }
   }
 }
