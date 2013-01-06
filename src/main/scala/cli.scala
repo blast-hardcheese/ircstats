@@ -30,11 +30,11 @@ object LineParser extends RegexParsers {
 
   val nick_letter = "[a-zA-Z]+".r
   val nick_digit = "[0-9]+".r
-  val nick_special = ( "[" | "]" | "\\" | "`" | "_" | "^" | "{" | "}" | "|" | "-" | "." )
+  val nick_special = ( "[" | "]" | "\\" | "`" | "_" | "^" | "{" | "}" | "|" | "-" )
   val nick = (nick_letter | nick_special) ~ rep(nick_letter | nick_digit | nick_special) ^^ {
     case first ~ list => first ++ list.mkString
   }
-  val hostnick = rep( nick_letter | nick_digit | nick_special ) ^^ {
+  val hostnick = rep( nick_letter | nick_digit | nick_special | "." ) ^^ {
     case list => list.mkString
   }
 
