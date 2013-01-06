@@ -45,13 +45,10 @@ object LineParser extends RegexParsers {
   val host = "~?".r ~ hostnick ~ "@" ~ hostchars ^^ { case _1 ~ n ~ a ~ _2 => _1 ++ n ++ a ++ _2 }
   val hostmask = rep( nick | "*" ) ~ "!" ~ rep( nick | "*" ) ~ "@" ~ rep( hostchars | "*" )  ^^ { case n1 ~ b ~ n2 ~ a ~ h => n1.mkString ++ b ++ n2.mkString ++ a ++ h.mkString }
 // [03:01:37] *** kRaKaToA sets mode: +b *!*EvilPengu@*.albq.qwest.net
-  val reason_paren: Parser[String] = "(" ~ reason ~ ")" ^^ {
-    case _1 ~ _2 ~ _3 => _1 ++ _2 ++ _3
-  }
-  val reason: Parser[String] = ( "[^()]*".r | reason_paren | ")" )
-  val quits = "*** Quits: " ~> nick ~ (" (" ~> host <~ ") ") ~ ("(" ~> reason <~ ")") ^^ { case n ~ h ~ r => new Quit(0, n, h, r) }
+  val paren_reason: Parser[String] = ( "(\".*\")".r | "(.*)".r)
+  val quits = "*** Quits: " ~> nick ~ (" (" ~> host <~ ") ") ~ paren_reason ^^ { case n ~ h ~ r => new Quit(0, n, h, r) }
   val joins = "*** Joins: " ~> nick ~ (" (" ~> host <~ ")") ^^ { case n ~ h => new Join(0, n, h) }
-  val parts = "*** Parts: " ~> nick ~ (" (" ~> host <~ ")") ~ (" (" ~> reason <~ ")") ^^ { case n ~ h ~ r => new Part(0, n, h, r) }
+  val parts = "*** Parts: " ~> nick ~ (" (" ~> host <~ ")") ~ (" " ~> paren_reason) ^^ { case n ~ h ~ r => new Part(0, n, h, r) }
   val nickchange = "*** " ~> nick ~ (" is now known as " ~> nick) ^^ { case oldn ~ newn => new NickChange(0, oldn, newn) }
   val action = "* " ~> nick ~ rest ^^ { case nick ~ rest => new Action(0, nick, rest) }
   val mode = "[+-][a-zA-Z]+".r
@@ -100,7 +97,7 @@ object ircstats {
     } else {
       val s = Source.fromFile(defaults.filename, "UTF-8")
       for(line <- s.getLines) {
-        println(line)
+//        println(line)
         println(LineParser.apply(line))
       }
     }
