@@ -126,9 +126,9 @@ object IRCLog {
 
 object ircstats {
   def main(args: Array[String]) {
-    if(args.length == 1) {
-      val s = """
+    val s = """
 [00:01:58] <Gur_Gvpx> revpn: url
+[00:01:58] <Gur_Gvpx> revpn, jryyl: url
 [00:05:31] *** Quits: jryyl (~jryyl@hanssvyvngrq/jryyl) (Ping timeout: 252 seconds)
 [00:07:26] *** Joins: ecbjryy (~ecbjryy@PCR-58-168-95-254.yaf6.xra.ovtcbaq.arg.nh)
 [03:27:10] *** Parts: gurOynpx (~guroynpx@93-136-4-134.nqfy.arg.g-pbz.ue) ()
@@ -137,15 +137,16 @@ object ircstats {
 [03:01:01] *** ChanServ sets mode: +o xEnXnGbN
 [03:01:37] *** xEnXnGbN sets mode: +b *!*RivyCrath@*.nyod.djrfg.arg
 """.trim
-      val lines = s.split("\n").toList
-      val log = new IRCLog(lines)
-      println(log.nicks)
-    } else {
-      // val lines = for (line <- s.getLines) yield LineParser(line)
+    val lines = s.split("\n").toList
 
-      var log = IRCLog.fromFile(defaults.filename)
+    var log = if(args.length == 1)
+      new IRCLog(lines)
+    else
+      IRCLog.fromFile(defaults.filename)
 
-      println(log.nicks)
-    }
+    val m = log.messages(0)
+    val r = m.getTargets
+    println(m)
+    println(r)
   }
 }
