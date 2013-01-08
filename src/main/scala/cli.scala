@@ -14,7 +14,7 @@ sealed trait IRCLine {
 
 }
 case class Message(timestamp: Integer, nick: String, message: String) extends IRCLine {
-  def getTargets = LineParser.extractTargets(message)
+  val _targets = LineParser.extractTargets(message)
 }
 case class Join(timestamp: Integer, nick: String, host: String) extends IRCLine
 case class Part(timestamp: Integer, nick: String, host: String, message: String) extends IRCLine
@@ -98,6 +98,7 @@ class IRCLog(rawlines: List[String]) {
 
   val talkative = nicks.map(nick => (nick, messages.filter(message => message.nick == nick).toList.length)) toMap
   val mentioned = nicks.map(nick => (nick, messages.filter( _ match { case message: Message => message.message.contains(nick); case _ => false } ).toList.length)) toMap
+  val targeted = nicks.map(nick => (nick, messages.filter( _ match { case m: Message => m._targets.contains(nick); case _ => false } ).toList.length ) )
 
   val most_talkative = talkative.map( kv => (kv._2, kv._1) ).toList.sorted.reverse
   val most_mentioned = mentioned.map( kv => (kv._2, kv._1) ).toList.sorted.reverse
