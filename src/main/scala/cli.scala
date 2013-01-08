@@ -27,8 +27,8 @@ object LineParser extends RegexParsers {
   override val skipWhitespace = false
 
   def timestamp_number: Parser[Integer] = """\d+""".r ^^ { _.toInt }
-  def timestamp = "[" ~> timestamp_number ~ ":" ~ timestamp_number ~ ":" ~ timestamp_number <~ "]" ^^ {
-    case h ~ ":" ~ m ~ ":" ~ s => h * 60 * 60 + m * 60 + s
+  def timestamp = ( "[" ~> timestamp_number ) ~ ( ":" ~> timestamp_number ) ~ ( ":" ~> timestamp_number <~ "]" ) ^^ {
+    case h ~ m ~ s => h * 60 * 60 + m * 60 + s
   }
 
   val mode = "[+-][a-zA-Z]+".r
@@ -54,37 +54,30 @@ object LineParser extends RegexParsers {
   val rest = ".*".r
 
 // [00:01:58] <Gur_Gvpx> revpn: url
-  val message = "<" ~ nick ~ "> " ~ rest ^^ { case "<" ~ n ~ "> " ~ m => Message(0, n, m) }
+  val message = (timestamp <~ " ") ~ ( "<" ~> nick <~ "> " ) ~ rest ^^ { case ts ~ n ~ m => Message(ts, n, m) }
 
 // [00:05:31] *** Quits: jryyl (~jryyl@hanssvyvngrq/jryyl) (Ping timeout: 252 seconds)
-  val quits = "*** Quits: " ~> nick ~ (" (" ~> host <~ ") ") ~ paren_reason ^^ { case n ~ h ~ r => Quit(0, n, h, r) }
+  val quits = (timestamp <~ " ") ~ ( "*** Quits: " ~> nick ) ~ (" (" ~> host <~ ") ") ~ paren_reason ^^ { case ts ~ n ~ h ~ r => Quit(ts, n, h, r) }
 
 // [00:07:26] *** Joins: ecbjryy (~ecbjryy@PCR-58-168-95-254.yaf6.xra.ovtcbaq.arg.nh)
-  val joins = "*** Joins: " ~> nick ~ (" (" ~> host <~ ")") ^^ { case n ~ h => Join(0, n, h) }
+  val joins = (timestamp <~ " ") ~ ( "*** Joins: " ~> nick ) ~ (" (" ~> host <~ ")") ^^ { case ts ~ n ~ h => Join(ts, n, h) }
 
 // [03:27:10] *** Parts: gurOynpx (~guroynpx@93-136-4-134.nqfy.arg.g-pbz.ue) ()
-  val parts = "*** Parts: " ~> nick ~ (" (" ~> host <~ ")") ~ (" " ~> paren_reason) ^^ { case n ~ h ~ r => Part(0, n, h, r) }
+  val parts = (timestamp <~ " ") ~ ( "*** Parts: " ~> nick ) ~ (" (" ~> host <~ ")") ~ (" " ~> paren_reason) ^^ { case ts ~ n ~ h ~ r => Part(ts, n, h, r) }
 
 // [00:21:05] *** qentbafu-1 is now known as qentbafurq
-  val nickchange = "*** " ~> nick ~ (" is now known as " ~> nick) ^^ { case oldn ~ newn => NickChange(0, oldn, newn) }
+  val nickchange = (timestamp <~ " ") ~ ( "*** " ~> nick ) ~ (" is now known as " ~> nick) ^^ { case ts ~ oldn ~ newn => NickChange(ts, oldn, newn) }
 
 // [01:09:42] * WbangunaGubzcfba jbaqref vs N_Aho erfcbaqrq ng rknpgyl gur evtug gvzr gb pngpu uvz abg pbaarpgrq :P
-  val action = "* " ~> nick ~ rest ^^ { case nick ~ rest => Action(0, nick, rest) }
+  val action = (timestamp <~ " ") ~ ( "* " ~> nick ) ~ rest ^^ { case ts ~ nick ~ rest => Action(ts, nick, rest) }
 
 // [03:01:01] *** ChanServ sets mode: +o xEnXnGbN
 // [03:01:37] *** xEnXnGbN sets mode: +b *!*RivyCrath@*.nyod.djrfg.arg
-  val modechange = "*** " ~> (nick <~ " sets mode: ") ~ mode ~ ( " " ~> ( nick | channel | hostmask ) ) ^^ { case nick ~ mode ~ target => ModeChange(0, nick, mode, target) }
+  val modetarget = ( nick | channel | hostmask )
+  val modechange = (timestamp <~ " ") ~ ( "*** " ~> nick <~ " sets mode: ") ~ mode ~ ( " " ~> modetarget ) ^^ { case ts ~ nick ~ mode ~ target => ModeChange(ts, nick, mode, target) }
 
 
-  val line = (timestamp <~ " ") ~ ( message | quits | joins | parts | nickchange | action | modechange ) ^^ {
-    case ts ~ Message(_, n, m) => Message(ts, n, m)
-    case ts ~ Quit(_, n, h, r) => Quit(ts, n, h, r)
-    case ts ~ Join(_, n, h) => Join(ts, n, h)
-    case ts ~ Part(_, n, h, r) => Part(ts, n, h, r)
-    case ts ~ NickChange(_, o, n) => NickChange(ts, o, n)
-    case ts ~ Action(_, n, a) => Action(ts, n, a)
-    case ts ~ ModeChange(_, n, m, t) => ModeChange(ts, n, m, t)
-  }
+  val line = ( message | quits | joins | parts | nickchange | action | modechange )
 
   def apply(input: String) = parseAll(line, input) match {
     case Success(result, _) => result
