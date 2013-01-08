@@ -4,8 +4,8 @@ import scala.util.parsing.combinator.RegexParsers
 import scala.io.Source
 
 object defaults {
-//  def filename = "sample_data/#iphonedev_20120611.log-short"
-  def filename = "sample_data/#iphonedev_20120611.log"
+//  val filename = "sample_data/#iphonedev_20120611.log-short"
+  val filename = "sample_data/#iphonedev_20120611.log"
 }
 
 sealed trait IRCLine {
@@ -26,8 +26,8 @@ case class ModeChange(timestamp: Integer, nick: String, mode: String, target: St
 object LineParser extends RegexParsers {
   override val skipWhitespace = false
 
-  def timestamp_number: Parser[Integer] = """\d+""".r ^^ { _.toInt }
-  def timestamp = ( "[" ~> timestamp_number ) ~ ( ":" ~> timestamp_number ) ~ ( ":" ~> timestamp_number <~ "]" ) ^^ {
+  val timestamp_number: Parser[Integer] = """\d+""".r ^^ { _.toInt }
+  val timestamp = ( "[" ~> timestamp_number ) ~ ( ":" ~> timestamp_number ) ~ ( ":" ~> timestamp_number <~ "]" ) ^^ {
     case h ~ m ~ s => h * 60 * 60 + m * 60 + s
   }
 
