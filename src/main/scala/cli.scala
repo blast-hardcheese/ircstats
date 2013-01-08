@@ -12,17 +12,10 @@ sealed trait IRCLine {
   val timestamp: Integer
   val nick: String
 
-  def getMessage = this match {
-    case Message(_, _, m) => Some(m)
-    case _ => None
-  }
-
-  def getTargets = this match {
-    case Message(_, _, m) => LineParser.extractTargets(m)
-    case _ => None
-  }
 }
-case class Message(timestamp: Integer, nick: String, message: String) extends IRCLine
+case class Message(timestamp: Integer, nick: String, message: String) extends IRCLine {
+  def getTargets = LineParser.extractTargets(message)
+}
 case class Join(timestamp: Integer, nick: String, host: String) extends IRCLine
 case class Part(timestamp: Integer, nick: String, host: String, message: String) extends IRCLine
 case class Quit(timestamp: Integer, nick: String, host: String, reason: String) extends IRCLine
@@ -111,9 +104,10 @@ object LineParser extends RegexParsers {
 }
 
 class IRCLog(rawlines: List[String]) {
-  val lines = for (line <- rawlines; parse = LineParser(line) ) yield parse
+  val lines: List[IRCLine] = for (line <- rawlines; parse = LineParser(line) ) yield parse
   val nicks = (for(line <- lines) yield line.nick).toList.distinct.sorted
-  val messages = lines.filter( _ match { case _: Message => true; case _ => false }) toList
+//  val messages = lines.collect { case m@Message(_, _, _) => m } // @ and : are interchangeable here, @ allows the use of unpacked parameters to Message.
+  val messages = lines.collect { case m:Message => m }
 
   val talkative = nicks.map(nick => (nick, messages.filter(message => message.nick == nick).toList.length)) toMap
   val mentioned = nicks.map(nick => (nick, messages.filter( _ match { case message: Message => message.message.contains(nick); case _ => false } ).toList.length)) toMap
