@@ -37,6 +37,7 @@ object LineParser extends RegexParsers {
   val nick = (nick_letter | nick_special) ~ rep(nick_letter | nick_digit | nick_special) ^^ {
     case first ~ list => first ++ list.mkString
   }
+  val nicks: Parser[List[String]] = rep( nick <~ "[,:] ?".r ) <~ rest
   val hostnick = rep( nick_letter | nick_digit | nick_special | "." ) ^^ {
     case list => list.mkString
   }
@@ -91,6 +92,12 @@ object LineParser extends RegexParsers {
     case Success(result, _) => result
     case failure: NoSuccess => scala.sys.error(failure.msg)
   }
+
+  def extractTargets(input: String): List[String] = parseAll(nicks, input) match {
+    case Success(result, _) => result
+    case failure: NoSuccess => scala.sys.error(failure.msg)
+  }
+
 }
 
 class IRCLog(rawlines: List[String]) {
