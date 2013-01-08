@@ -11,6 +11,16 @@ object defaults {
 sealed trait IRCLine {
   val timestamp: Integer
   val nick: String
+
+  def getMessage = this match {
+    case Message(_, _, m) => Some(m)
+    case _ => None
+  }
+
+  def getTargets = this match {
+    case Message(_, _, m) => LineParser.extractTargets(m)
+    case _ => None
+  }
 }
 case class Message(timestamp: Integer, nick: String, message: String) extends IRCLine
 case class Join(timestamp: Integer, nick: String, host: String) extends IRCLine
