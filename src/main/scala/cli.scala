@@ -84,16 +84,10 @@ object LineParser extends RegexParsers {
     case failure: NoSuccess => scala.sys.error(failure.msg)
   }
 
-  def applyName(input: String) = parse(nick, input) match {
-    case Success(result, _) => result
-    case failure: NoSuccess => scala.sys.error(failure.msg)
-  }
-
   def extractTargets(input: String): List[String] = parseAll(nicks, input) match {
     case Success(result, _) => result
     case failure: NoSuccess => scala.sys.error(failure.msg)
   }
-
 }
 
 class IRCLog(rawlines: List[String]) {
